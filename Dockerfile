@@ -39,8 +39,8 @@ RUN \
     make install && \
 # Build GDAL
     pip install numpy && \
-    curl http://download.osgeo.org/gdal/2.4.0/gdal-2.4.0.tar.gz | tar zxv -C /tmp && \
-    cd /tmp/gdal-2.4.0 && \
+    curl http://download.osgeo.org/gdal/2.4.1/gdal-2.4.1.tar.gz | tar zxv -C /tmp && \
+    cd /tmp/gdal-2.4.1 && \
     ./configure \
         --prefix=/usr \
         --with-threads \
