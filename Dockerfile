@@ -80,4 +80,4 @@ RUN \
 # https://lists.osgeo.org/pipermail/gdal-dev/2017-July/046846.html
 ENV HOME=/root
 
-CMD ["gdalinfo --version"]
+CMD ["gdalinfo", "--version"]
