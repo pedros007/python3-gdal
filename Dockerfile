@@ -1,5 +1,8 @@
 FROM python:3
 MAINTAINER Peter Schmitt "pschmitt@gmail.com"
+ARG OPENJPEG_VERSION=2.3.1
+ARG CURL_VERSION=7.64.1
+ARG GDAL_VERSION=2.4.1
 
 # To build from GitHub, comment out curl http://download.osgeo... and
 # cd, replace with something like:
@@ -10,17 +13,17 @@ MAINTAINER Peter Schmitt "pschmitt@gmail.com"
 # Then build:
 #   docker build -t pedros007/python3-gdal:2c866d3 .
 
+ENV LD_LIBRARY_PATH=/usr/local/lib
 RUN \
 # Install libraries
     apt-get update && \
     apt-get upgrade -y && \
+    apt-get remove -y curl libcurl3 && \
     apt-get install -y --no-install-recommends \
         build-essential \
         make \
         cmake \
-        curl \
         ca-certificates\
-        libcurl4-gnutls-dev \
         shapelib \
         libproj-dev \
         libproj12 \
@@ -29,18 +32,27 @@ RUN \
         libgeos-c1v5 \
         libgeos-dev \
         postgresql-client-common \
-        libpq-dev && \
+        libpq-dev \
+        nghttp2 \
+        libnghttp2-dev \
+        libssl-dev && \
+# Build libcurl with nghttp2 to enable /vsicurl/ suport for HTTP/2
+    wget -qO- https://curl.haxx.se/download/curl-$CURL_VERSION.tar.gz | tar zxv -C /tmp && \
+    cd /tmp/curl-$CURL_VERSION  && \
+    ./configure --prefix=/usr/local --disable-manual --disable-cookies --with-nghttp2 --with-ssl  && \
+    make -j $(grep --count ^processor /proc/cpuinfo) --silent && \
+    make install && \
 # Build OpenJPEG
-    git clone -b master https://github.com/uclouvain/openjpeg.git /tmp/openjpeg && \
-    mkdir /tmp/openjpeg/build && \
-    cd /tmp/openjpeg/build && \
+    wget -qO- https://github.com/uclouvain/openjpeg/archive/v$OPENJPEG_VERSION.tar.gz | tar zxv -C /tmp && \
+    mkdir -p cd /tmp/openjpeg-$OPENJPEG_VERSION/build && \
+    cd /tmp/openjpeg-$OPENJPEG_VERSION/build && \
     cmake .. -DCMAKE_INSTALL_PREFIX=/usr && \
-    make -j $(grep --count ^processor /proc/cpuinfo) && \
+    make -j $(grep --count ^processor /proc/cpuinfo) --silent && \
     make install && \
 # Build GDAL
     pip install numpy && \
-    curl http://download.osgeo.org/gdal/2.4.1/gdal-2.4.1.tar.gz | tar zxv -C /tmp && \
-    cd /tmp/gdal-2.4.1 && \
+    curl http://download.osgeo.org/gdal/$GDAL_VERSION/gdal-$GDAL_VERSION.tar.gz | tar zxv -C /tmp && \
+    cd /tmp/gdal-$GDAL_VERSION && \
     ./configure \
         --prefix=/usr \
         --with-threads \
@@ -51,7 +63,7 @@ RUN \
         --with-geotiff=internal \
         --with-geos \
         --with-pg \
-        --with-curl \
+        --with-curl=/usr/local/bin/curl-config \
         --with-static-proj4=yes \
         --with-openjpeg=yes \
         --with-ecw=no \
@@ -70,9 +82,10 @@ RUN \
     ln -s /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt && \
 # Clean up
     apt-get remove -y --purge \
-        libcurl4-gnutls-dev \
         libgeos-dev \
-        libpq-dev && \
+        libpq-dev \
+        libnghttp2-dev \
+        libssl-dev && \
     rm -rf /var/lib/apt/lists/* /tmp/* && \
     rm -rf /root/.cache/pip
 
