@@ -13,7 +13,6 @@ ARG GDAL_VERSION=2.4.1
 # Then build:
 #   docker build -t pedros007/python3-gdal:2c866d3 .
 
-ENV LD_LIBRARY_PATH=/usr/local/lib
 RUN \
 # Install libraries
     apt-get update && \
@@ -39,7 +38,7 @@ RUN \
 # Build libcurl with nghttp2 to enable /vsicurl/ suport for HTTP/2
     wget -qO- https://curl.haxx.se/download/curl-$CURL_VERSION.tar.gz | tar zxv -C /tmp && \
     cd /tmp/curl-$CURL_VERSION  && \
-    ./configure --prefix=/usr/local --disable-manual --disable-cookies --with-nghttp2 --with-ssl  && \
+    ./configure --prefix=/usr/local --enable-shared=no --disable-manual --disable-cookies --with-nghttp2 --with-ssl  && \
     make -j $(grep --count ^processor /proc/cpuinfo) --silent && \
     make install && \
 # Build OpenJPEG
