@@ -1,8 +1,11 @@
 FROM python:3
 MAINTAINER Peter Schmitt "pschmitt@gmail.com"
-ARG OPENJPEG_VERSION=2.3.1
-ARG CURL_VERSION=7.64.1
-ARG GDAL_VERSION=2.4.1
+ENV  OPENJPEG_VERSION=2.3.1 \
+     CURL_VERSION=7.64.1 \
+     GDAL_VERSION=2.4.1
+
+# TODO: add `--without-lib` to configure
+# TODO: Build spatiallite support so `ogr2ogr -dialect SQLITE ...` works
 
 # To build from GitHub, comment out curl http://download.osgeo... and
 # cd, replace with something like:
@@ -34,7 +37,13 @@ RUN \
         libpq-dev \
         nghttp2 \
         libnghttp2-dev \
-        libssl-dev && \
+        libssl-dev \
+	libspatialite7 \
+	libspatialite-dev \
+	libwebp6 \
+	libwebp-dev \
+	bash-completion \
+	&& \
 # Build libcurl with nghttp2 to enable /vsicurl/ suport for HTTP/2
     wget -qO- https://curl.haxx.se/download/curl-$CURL_VERSION.tar.gz | tar zxv -C /tmp && \
     cd /tmp/curl-$CURL_VERSION  && \
@@ -54,26 +63,28 @@ RUN \
     cd /tmp/gdal-$GDAL_VERSION && \
     ./configure \
         --prefix=/usr \
-        --with-threads \
-        --with-hide-internal-symbols=yes \
-        --with-rename-internal-libtiff-symbols=yes \
-        --with-rename-internal-libgeotiff-symbols=yes \
-        --with-libtiff=internal \
-        --with-geotiff=internal \
-        --with-geos \
-        --with-pg \
         --with-curl=/usr/local/bin/curl-config \
-        --with-static-proj4=yes \
+        --with-geos=/usr/bin/geos-config \
+        --with-geotiff=internal \
+        --with-hide-internal-symbols=yes \
+        --with-libtiff=internal \
         --with-openjpeg=yes \
-        --with-ecw=no \
-        --with-grass=no \
-        --with-hdf5=no \
-        --with-java=no \
-        --with-mrsid=no \
-        --with-perl=no \
+        --with-pg=/usr/bin/pg_config \
         --with-python=yes \
-        --with-webp=no \
-        --with-xerces=no && \
+	--with-spatialite=yes \
+        --with-rename-internal-libgeotiff-symbols=yes \
+        --with-rename-internal-libtiff-symbols=yes \
+        --with-static-proj4=yes \
+        --with-webp=yes \
+        --without-ecw \
+        --without-grass \
+	--without-grib \
+        --without-hdf5 \
+        --without-java \
+        --without-mrsid \
+        --without-perl \
+        --without-xerces \
+	&& \
     make -j $(grep --count ^processor /proc/cpuinfo) && \
     make install && \
 # Fix certificate path (some applications look in this alternate location)
@@ -84,7 +95,9 @@ RUN \
         libgeos-dev \
         libpq-dev \
         libnghttp2-dev \
-        libssl-dev && \
+        libssl-dev \
+	libspatialite-dev \
+	libwebp-dev && \
     rm -rf /var/lib/apt/lists/* /tmp/* && \
     rm -rf /root/.cache/pip
 
