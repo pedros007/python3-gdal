@@ -1,8 +1,7 @@
 FROM python:3
 MAINTAINER Peter Schmitt "pschmitt@gmail.com"
 ENV  OPENJPEG_VERSION=2.3.1 \
-     CURL_VERSION=7.64.1 \
-     GDAL_VERSION=2.4.1
+     GDAL_VERSION=2.4.3
 
 # TODO: add `--without-lib` to configure
 # TODO: Build spatiallite support so `ogr2ogr -dialect SQLITE ...` works
@@ -20,7 +19,6 @@ RUN \
 # Install libraries
     apt-get update && \
     apt-get upgrade -y && \
-    apt-get remove -y curl libcurl3 && \
     apt-get install -y --no-install-recommends \
         build-essential \
         make \
@@ -28,9 +26,9 @@ RUN \
         ca-certificates\
         shapelib \
         libproj-dev \
-        libproj12 \
+        libproj13 \
         proj-data \
-        libgeos-3.5.1 \
+        libgeos-3.7.1 \
         libgeos-c1v5 \
         libgeos-dev \
         postgresql-client-common \
@@ -44,12 +42,6 @@ RUN \
 	libwebp-dev \
 	bash-completion \
 	&& \
-# Build libcurl with nghttp2 to enable /vsicurl/ suport for HTTP/2
-    wget -qO- https://curl.haxx.se/download/curl-$CURL_VERSION.tar.gz | tar zxv -C /tmp && \
-    cd /tmp/curl-$CURL_VERSION  && \
-    ./configure --prefix=/usr/local --enable-shared=no --disable-manual --disable-cookies --with-nghttp2 --with-ssl  && \
-    make -j $(grep --count ^processor /proc/cpuinfo) --silent && \
-    make install && \
 # Build OpenJPEG
     wget -qO- https://github.com/uclouvain/openjpeg/archive/v$OPENJPEG_VERSION.tar.gz | tar zxv -C /tmp && \
     mkdir -p cd /tmp/openjpeg-$OPENJPEG_VERSION/build && \
@@ -63,7 +55,7 @@ RUN \
     cd /tmp/gdal-$GDAL_VERSION && \
     ./configure \
         --prefix=/usr \
-        --with-curl=/usr/local/bin/curl-config \
+        --with-curl \
         --with-geos=/usr/bin/geos-config \
         --with-geotiff=internal \
         --with-hide-internal-symbols=yes \
