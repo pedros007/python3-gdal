@@ -1,7 +1,7 @@
 FROM python:3
 MAINTAINER Peter Schmitt "pschmitt@gmail.com"
 ENV  OPENJPEG_VERSION=2.3.1 \
-     GDAL_VERSION=2.4.3
+     GDAL_VERSION=2.4.4
 
 # TODO: add `--without-lib` to configure
 # TODO: Build spatiallite support so `ogr2ogr -dialect SQLITE ...` works
