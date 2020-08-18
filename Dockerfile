@@ -1,4 +1,4 @@
-FROM python:3
+FROM debian:buster-slim
 MAINTAINER Peter Schmitt "pschmitt@gmail.com"
 ENV  OPENJPEG_VERSION=2.3.1 \
      GDAL_VERSION=2.4.4
@@ -23,6 +23,12 @@ RUN \
         build-essential \
         make \
         cmake \
+	wget \
+	curl \
+	python3 \
+	python3-dev \
+	python3-pip \
+	python3-numpy \
         ca-certificates\
         shapelib \
         libproj-dev \
@@ -50,7 +56,6 @@ RUN \
     make -j $(grep --count ^processor /proc/cpuinfo) --silent && \
     make install && \
 # Build GDAL
-    pip install numpy && \
     curl http://download.osgeo.org/gdal/$GDAL_VERSION/gdal-$GDAL_VERSION.tar.gz | tar zxv -C /tmp && \
     cd /tmp/gdal-$GDAL_VERSION && \
     ./configure \
