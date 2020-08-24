@@ -25,10 +25,13 @@ RUN \
         cmake \
 	wget \
 	curl \
+	libcurl4 \
+	libcurl4-openssl-dev \
 	python3 \
 	python3-dev \
 	python3-pip \
 	python3-numpy \
+	python3-setuptools \
         ca-certificates\
         shapelib \
         libproj-dev \
@@ -46,8 +49,8 @@ RUN \
 	libspatialite-dev \
 	libwebp6 \
 	libwebp-dev \
-	bash-completion \
-	&& \
+	bash-completion && \
+    pip3 install wheel && \
 # Build OpenJPEG
     wget -qO- https://github.com/uclouvain/openjpeg/archive/v$OPENJPEG_VERSION.tar.gz | tar zxv -C /tmp && \
     mkdir -p cd /tmp/openjpeg-$OPENJPEG_VERSION/build && \
